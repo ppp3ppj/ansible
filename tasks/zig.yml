@@ -1,0 +1,46 @@
+- name: Install prerequisites for Zig
+  apt:
+    name:
+      - curl
+      - tar
+    state: present
+  become: true
+
+- name: Create directory for Zig
+  file:
+    path: "{{ ansible_user_dir }}/.zig"
+    state: directory
+    mode: '0755'
+
+- name: Verify the Zig directory exists
+  command: ls -ld "{{ ansible_user_dir }}/.zig"
+  register: zig_dir_check
+  failed_when: zig_dir_check.rc != 0
+
+- name: Download Zig binary
+  get_url:
+    url: https://ziglang.org/builds/zig-linux-x86_64-0.14.0-dev.2547+77c63ac36.tar.xz
+    dest: /tmp/zig.tar.xz
+
+- name: Debug the Zig directory
+  command:
+    cmd: ls -l "{{ ansible_user_dir }}/.zig"
+  ignore_errors: true
+  register: zig_dir_status
+
+- debug:
+    msg: "{{ zig_dir_status.stdout }}"
+
+- name: Extract Zig binary
+  command:
+    cmd: tar -xvf /tmp/zig.tar.xz --strip-components=1 -C "{{ ansible_user_dir }}/.zig"
+  args:
+    creates: "{{ ansible_user_dir }}/.zig/zig"
+
+- name: Verify Zig installation
+  command:
+    cmd: ls -l "{{ ansible_user_dir }}/.zig"
+  register: zig_install_status
+
+- debug:
+    msg: "{{ zig_install_status.stdout }}"
