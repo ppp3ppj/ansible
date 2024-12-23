@@ -44,3 +44,14 @@
 
 - debug:
     msg: "{{ zig_install_status.stdout }}"
+
+- name: Check if the Zig tarball exists
+  stat:
+    path: /tmp/zig.tar.xz
+  register: zig_tar_status
+
+- name: Delete the Zig tarball if it exists
+  file:
+    path: /tmp/zig.tar.xz
+    state: absent
+  when: zig_tar_status.stat.exists
