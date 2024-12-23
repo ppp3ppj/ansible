@@ -8,3 +8,4 @@
       state: present
   tasks:
     - import_tasks: tasks/ranger.yml
+    - import_tasks: tasks/zig.yml
