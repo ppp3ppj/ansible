@@ -1,0 +1,62 @@
+- name: Install prerequisites
+  apt:
+    name:
+      - curl
+      - tar
+    state: present
+
+- name: Check if previous Go installation exists
+  stat:
+    path: /usr/local/go
+  register: go_dir_status
+
+- name: Remove previous Go installation
+  file:
+    path: /usr/local/go
+    state: absent
+  when: go_dir_status.stat.exists
+  become: true  # Ensure the task runs with root privileges
+
+- name: Download Go binary
+  get_url:
+    url: https://go.dev/dl/go1.23.4.linux-amd64.tar.gz
+    dest: /tmp/go.tar.gz
+    mode: '0644'
+
+- name: Extract Go binary
+  command:
+    cmd: tar -C /usr/local -xzf /tmp/go.tar.gz
+  args:
+    creates: /usr/local/go/bin
+  become: true  # Ensure the task runs with root privileges
+
+- name: Verify Go installation
+  command:
+    cmd: /usr/local/go/bin/go version
+  register: go_version_status
+  become: true  # Ensure the task runs with root privileges
+
+- debug:
+    msg: "{{ go_version_status.stdout }}"
+
+- name: Add Go to PATH in .zshrc
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    line: 'export PATH=$PATH:/usr/local/go/bin'
+    state: present
+
+- name: Apply updated PATH (source .zshrc)
+  shell: source "{{ ansible_env.HOME }}/.zshrc"
+  args:
+    executable: /bin/zsh
+
+- name: Check if the Go tarball exists
+  stat:
+    path: /tmp/go.tar.gz
+  register: go_tar_status
+
+- name: Remove Go tarball after installation
+  file:
+    path: /tmp/go.tar.gz
+    state: absent
+  when: go_tar_status.stat.exists
