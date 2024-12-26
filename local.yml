@@ -9,3 +9,4 @@
   tasks:
     - import_tasks: tasks/ranger.yml
     - import_tasks: tasks/zig.yml
+    - import_tasks: tasks/go-setup.yml
